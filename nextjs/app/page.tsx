@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import SettingsPanel, { GenerateParams } from "@/components/SettingsPanel";
 
 const DEFAULTS: GenerateParams = {
@@ -24,6 +24,8 @@ export default function Home() {
   const [loading, setLoading]   = useState(false);
   const [error, setError]       = useState<string | null>(null);
   const [elapsed, setElapsed]   = useState<number | null>(null);
+  const [history, setHistory]   = useState<Result[]>([]);
+  const [historyPrompts, setHistoryPrompts] = useState<Record<number, string>>({});
 
   async function generate() {
     if (!params.prompt.trim()) return;
@@ -56,6 +58,8 @@ export default function Home() {
 
       setResult(data);
       setElapsed((Date.now() - start) / 1000);
+      setHistory((prev) => [{ image: data.image, seed: data.seed }, ...prev]);
+      setHistoryPrompts((prev) => ({ ...prev, [data.seed]: params.prompt }));
     } catch (e) {
       setError(e instanceof Error ? e.message : "Something went wrong");
     } finally {
@@ -66,6 +70,11 @@ export default function Home() {
   function reuseSeed() {
     if (result) setParams((p) => ({ ...p, seed: String(result.seed) }));
   }
+
+  const viewFromHistory = useCallback((item: Result) => {
+    setResult(item);
+    setElapsed(null);
+  }, []);
 
   function download() {
     if (!result) return;
@@ -133,6 +142,28 @@ export default function Home() {
                   Download
                 </button>
               </div>
+
+              {history.length > 0 && (
+                <section className="history">
+                  <h2 className="history-title">History</h2>
+                  <div className="history-grid">
+                    {history.map((item, i) => (
+                      <button
+                        key={`${item.seed}-${i}`}
+                        className="history-item"
+                        onClick={() => viewFromHistory(item)}
+                      >
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={`data:image/png;base64,${item.image}`}
+                          alt={historyPrompts[item.seed] ?? `seed ${item.seed}`}
+                        />
+                        <span className="history-seed">{item.seed}</span>
+                      </button>
+                    ))}
+                  </div>
+                </section>
+              )}
             </>
           ) : (
             <div className="output-empty">
