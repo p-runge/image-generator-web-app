@@ -175,28 +175,6 @@ export default function Home() {
                   Steps {displayParams.num_inference_steps} &middot; Guidance {displayParams.guidance_scale} &middot; {displayParams.width}&times;{displayParams.height} &middot; Seed {displayParams.seed}
                 </span>
               </div>
-
-              {history.length > 0 && (
-                <section className="history">
-                  <h2 className="history-title">History</h2>
-                  <div className="history-grid">
-                    {history.map((item, i) => (
-                      <button
-                        key={`${item.seed}-${i}`}
-                        className="history-item"
-                        onClick={() => viewFromHistory(item)}
-                      >
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
-                          src={`data:image/png;base64,${item.image}`}
-                          alt={item.prompt}
-                        />
-                        <span className="history-seed">{item.seed}</span>
-                      </button>
-                    ))}
-                  </div>
-                </section>
-              )}
             </>
           ) : (
             <div className="output-empty">
@@ -209,6 +187,28 @@ export default function Home() {
                 <p>Your image will appear here</p>
               )}
             </div>
+          )}
+
+          {history.length > 0 && (
+            <section className="history">
+              <h2 className="history-title">History</h2>
+              <div className="history-grid">
+                {history.map((item, i) => (
+                  <button
+                    key={`${item.seed}-${i}`}
+                    className="history-item"
+                    onClick={() => viewFromHistory(item)}
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={`data:image/png;base64,${item.image}`}
+                      alt={item.prompt}
+                    />
+                    <span className="history-seed">{item.seed}</span>
+                  </button>
+                ))}
+              </div>
+            </section>
           )}
 
           {result && loading && (
