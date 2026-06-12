@@ -2,7 +2,7 @@
 
 import { useState, useCallback } from "react";
 import SettingsPanel, { GenerateParams } from "@/components/SettingsPanel";
-import { useHistoryStore } from "@/stores/history";
+import { useHistoryStore, type HistoryEntry } from "@/stores/history";
 
 const DEFAULTS: GenerateParams = {
   prompt: "",
@@ -26,12 +26,14 @@ export default function Home() {
   const [error, setError]       = useState<string | null>(null);
   const [elapsed, setElapsed]   = useState<number | null>(null);
   const { entries: history, addEntry } = useHistoryStore();
+  const [viewedEntry, setViewedEntry] = useState<HistoryEntry | null>(null);
 
   async function generate() {
     if (!params.prompt.trim()) return;
 
     setLoading(true);
     setError(null);
+    setViewedEntry(null);
     const start = Date.now();
 
     try {
@@ -58,7 +60,16 @@ export default function Home() {
 
       setResult(data);
       setElapsed((Date.now() - start) / 1000);
-      addEntry({ image: data.image, seed: data.seed, prompt: params.prompt });
+      addEntry({
+        image: data.image,
+        seed: data.seed,
+        prompt: params.prompt,
+        negative_prompt: params.negative_prompt,
+        num_inference_steps: Number(params.num_inference_steps),
+        guidance_scale: Number(params.guidance_scale),
+        width: Number(params.width),
+        height: Number(params.height),
+      });
     } catch (e) {
       setError(e instanceof Error ? e.message : "Something went wrong");
     } finally {
@@ -70,8 +81,9 @@ export default function Home() {
     if (result) setParams((p) => ({ ...p, seed: String(result.seed) }));
   }
 
-  const viewFromHistory = useCallback((item: Result) => {
-    setResult(item);
+  const viewFromHistory = useCallback((entry: HistoryEntry) => {
+    setResult({ image: entry.image, seed: entry.seed });
+    setViewedEntry(entry);
     setElapsed(null);
   }, []);
 
@@ -84,6 +96,16 @@ export default function Home() {
   }
 
   const canSubmit = params.prompt.trim().length > 0 && !loading;
+
+  const displayParams = viewedEntry ?? {
+    prompt: params.prompt,
+    negative_prompt: params.negative_prompt,
+    num_inference_steps: Number(params.num_inference_steps),
+    guidance_scale: Number(params.guidance_scale),
+    width: Number(params.width),
+    height: Number(params.height),
+    seed: result?.seed ?? 0,
+  };
 
   return (
     <main>
@@ -140,6 +162,18 @@ export default function Home() {
                 <button className="download-btn" onClick={download}>
                   Download
                 </button>
+              </div>
+
+              <div className="params-display">
+                <span className="params-prompt">&ldquo;{displayParams.prompt}&rdquo;</span>
+                {displayParams.negative_prompt && (
+                  <span className="params-negative">
+                    Negative: {displayParams.negative_prompt}
+                  </span>
+                )}
+                <span className="params-tech">
+                  Steps {displayParams.num_inference_steps} &middot; Guidance {displayParams.guidance_scale} &middot; {displayParams.width}&times;{displayParams.height} &middot; Seed {displayParams.seed}
+                </span>
               </div>
 
               {history.length > 0 && (

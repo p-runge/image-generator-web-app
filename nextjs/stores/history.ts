@@ -5,6 +5,11 @@ export interface HistoryEntry {
   image: string;
   seed: number;
   prompt: string;
+  negative_prompt: string;
+  num_inference_steps: number;
+  guidance_scale: number;
+  width: number;
+  height: number;
 }
 
 interface HistoryStore {
