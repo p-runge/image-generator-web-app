@@ -2,6 +2,7 @@
 
 import { useState, useCallback } from "react";
 import SettingsPanel, { GenerateParams } from "@/components/SettingsPanel";
+import { useHistoryStore } from "@/stores/history";
 
 const DEFAULTS: GenerateParams = {
   prompt: "",
@@ -24,8 +25,7 @@ export default function Home() {
   const [loading, setLoading]   = useState(false);
   const [error, setError]       = useState<string | null>(null);
   const [elapsed, setElapsed]   = useState<number | null>(null);
-  const [history, setHistory]   = useState<Result[]>([]);
-  const [historyPrompts, setHistoryPrompts] = useState<Record<number, string>>({});
+  const { entries: history, addEntry } = useHistoryStore();
 
   async function generate() {
     if (!params.prompt.trim()) return;
@@ -58,8 +58,7 @@ export default function Home() {
 
       setResult(data);
       setElapsed((Date.now() - start) / 1000);
-      setHistory((prev) => [{ image: data.image, seed: data.seed }, ...prev]);
-      setHistoryPrompts((prev) => ({ ...prev, [data.seed]: params.prompt }));
+      addEntry({ image: data.image, seed: data.seed, prompt: params.prompt });
     } catch (e) {
       setError(e instanceof Error ? e.message : "Something went wrong");
     } finally {
@@ -156,7 +155,7 @@ export default function Home() {
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
                           src={`data:image/png;base64,${item.image}`}
-                          alt={historyPrompts[item.seed] ?? `seed ${item.seed}`}
+                          alt={item.prompt}
                         />
                         <span className="history-seed">{item.seed}</span>
                       </button>
