@@ -15,6 +15,8 @@ export interface HistoryEntry {
 interface HistoryStore {
   entries: HistoryEntry[];
   addEntry: (entry: HistoryEntry) => void;
+  removeEntry: (index: number) => void;
+  clearHistory: () => void;
 }
 
 export const useHistoryStore = create<HistoryStore>()(
@@ -23,6 +25,9 @@ export const useHistoryStore = create<HistoryStore>()(
       entries: [],
       addEntry: (entry) =>
         set((state) => ({ entries: [entry, ...state.entries] })),
+      removeEntry: (index) =>
+        set((state) => ({ entries: state.entries.filter((_, i) => i !== index) })),
+      clearHistory: () => set({ entries: [] }),
     }),
     { name: "imagegen-history" },
   ),

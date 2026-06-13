@@ -25,7 +25,7 @@ export default function Home() {
   const [loading, setLoading]   = useState(false);
   const [error, setError]       = useState<string | null>(null);
   const [elapsed, setElapsed]   = useState<number | null>(null);
-  const { entries: history, addEntry } = useHistoryStore();
+  const { entries: history, addEntry, removeEntry, clearHistory } = useHistoryStore();
   const [viewedEntry, setViewedEntry] = useState<HistoryEntry | null>(null);
 
   async function generate() {
@@ -191,10 +191,15 @@ export default function Home() {
 
           {history.length > 0 && (
             <section className="history">
-              <h2 className="history-title">History</h2>
+              <div className="history-header">
+                <h2 className="history-title">History</h2>
+                <button className="history-clear" onClick={clearHistory}>
+                  Clear all
+                </button>
+              </div>
               <div className="history-grid">
                 {history.map((item, i) => (
-                  <button
+                  <div
                     key={`${item.seed}-${i}`}
                     className="history-item"
                     onClick={() => viewFromHistory(item)}
@@ -205,7 +210,17 @@ export default function Home() {
                       alt={item.prompt}
                     />
                     <span className="history-seed">{item.seed}</span>
-                  </button>
+                    <button
+                      className="history-delete"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        removeEntry(i);
+                      }}
+                      title="Remove"
+                    >
+                      &times;
+                    </button>
+                  </div>
                 ))}
               </div>
             </section>
