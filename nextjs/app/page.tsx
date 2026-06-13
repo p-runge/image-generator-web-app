@@ -108,16 +108,18 @@ export default function Home() {
   };
 
   return (
-    <main>
-      <header>
-        <h1>image<span>gen</span></h1>
+    <main className="min-h-screen bg-bg text-text font-ui text-sm leading-relaxed">
+      <header className="flex items-center px-8 py-6 border-b border-border">
+        <h1 className="font-display text-[22px] font-extrabold tracking-tight text-text">
+          image<span className="text-accent">gen</span>
+        </h1>
       </header>
 
-      <div className="layout">
-        <section className="controls">
-          <div className="prompt-area">
+      <div className="grid grid-cols-[360px_1fr] h-[calc(100vh-65px)]">
+        <section className="flex flex-col gap-4 p-6 border-r border-border overflow-y-auto">
+          <div className="flex flex-col gap-1.5">
             <textarea
-              className="prompt-input"
+              className="w-full bg-surface border border-border rounded-sm text-text font-ui text-sm leading-relaxed p-3 resize-y transition-[border-color] duration-150 focus:outline-none focus:border-accent placeholder:text-muted"
               placeholder="Describe the image…"
               value={params.prompt}
               onChange={(e) => setParams((p) => ({ ...p, prompt: e.target.value }))}
@@ -126,62 +128,81 @@ export default function Home() {
               }}
               rows={4}
             />
-            <span className="prompt-hint">⌘ Enter to generate</span>
+            <span className="text-[11px] text-dim text-right">⌘ Enter to generate</span>
           </div>
 
           <SettingsPanel params={params} onChange={setParams} />
 
           <button
-            className="generate-btn"
+            className="flex items-center justify-center gap-2 w-full min-h-12 bg-accent text-[#0d0d0d] rounded-sm font-display text-[15px] font-bold tracking-wide transition-[background,opacity] duration-150 hover:bg-[#d9ff50] disabled:opacity-35 disabled:cursor-not-allowed"
             onClick={generate}
             disabled={!canSubmit}
           >
-            {loading ? <span className="spinner" /> : "Generate"}
+            {loading ? (
+              <span className="inline-block w-[18px] h-[18px] border-2 border-[rgba(13,13,13,0.3)] border-t-[#0d0d0d] rounded-full animate-spin" />
+            ) : (
+              "Generate"
+            )}
           </button>
 
-          {error && <p className="error-msg">{error}</p>}
+          {error && (
+            <p className="text-error text-[13px] border border-[#3a1a1a] bg-[#1e0e0e] rounded-sm px-3 py-2.5">
+              {error}
+            </p>
+          )}
         </section>
 
-        <section className="output">
+        <section className="relative flex flex-col items-center justify-start p-8 bg-surface overflow-y-auto">
           {result ? (
             <>
-              <div className="image-wrap">
+              <div className="flex items-center justify-center max-w-full max-h-[calc(100vh-145px)]">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={`data:image/png;base64,${result.image}`}
                   alt={params.prompt}
+                  className="max-w-full max-h-[calc(100vh-145px)] rounded-xs block object-contain"
                 />
               </div>
-              <div className="image-meta">
-                <span className="meta-seed" title="Click to reuse this seed" onClick={reuseSeed}>
+
+              <div className="flex items-center gap-3.5 mt-3.5">
+                <span
+                  className="text-[12px] text-dim font-mono cursor-pointer border border-border rounded-xs px-2 py-0.5 transition-[color,border-color] duration-150 hover:text-accent hover:border-accent"
+                  title="Click to reuse this seed"
+                  onClick={reuseSeed}
+                >
                   seed {result.seed}
                 </span>
                 {elapsed !== null && (
-                  <span className="meta-time">{elapsed.toFixed(1)}s</span>
+                  <span className="text-[12px] text-muted">{elapsed.toFixed(1)}s</span>
                 )}
-                <button className="download-btn" onClick={download}>
+                <button
+                  className="bg-none border border-border rounded-xs text-dim cursor-pointer font-ui text-[12px] px-2.5 py-0.5 transition-[color,border-color] duration-150 hover:text-text hover:border-muted"
+                  onClick={download}
+                >
                   Download
                 </button>
               </div>
 
-              <div className="params-display">
-                <span className="params-prompt">&ldquo;{displayParams.prompt}&rdquo;</span>
+              <div className="flex flex-col items-center gap-1.5 mt-3.5 w-full max-w-[480px]">
+                <span className="text-[13px] text-dim italic text-center break-words">
+                  &ldquo;{displayParams.prompt}&rdquo;
+                </span>
                 {displayParams.negative_prompt && (
-                  <span className="params-negative">
+                  <span className="text-[11px] text-muted text-center break-words">
                     Negative: {displayParams.negative_prompt}
                   </span>
                 )}
-                <span className="params-tech">
+                <span className="text-[11px] text-muted font-mono text-center">
                   Steps {displayParams.num_inference_steps} &middot; Guidance {displayParams.guidance_scale} &middot; {displayParams.width}&times;{displayParams.height} &middot; Seed {displayParams.seed}
                 </span>
               </div>
             </>
           ) : (
-            <div className="output-empty">
+            <div className="text-muted text-[13px] text-center m-auto">
               {loading ? (
-                <div className="generating-state">
-                  <div className="big-spinner" />
-                  <p>Generating…</p>
+                <div className="flex flex-col items-center gap-3.5 text-dim text-[13px]">
+                  <div className="w-9 h-9 border-2 border-border border-t-accent rounded-full animate-spin" />
+                  <p>Generating&hellip;</p>
                 </div>
               ) : (
                 <p>Your image will appear here</p>
@@ -190,28 +211,35 @@ export default function Home() {
           )}
 
           {history.length > 0 && (
-            <section className="history">
-              <div className="history-header">
-                <h2 className="history-title">History</h2>
-                <button className="history-clear" onClick={clearHistory}>
+            <section className="w-full mt-7 pt-5 border-t border-border">
+              <div className="flex items-center justify-between mb-3">
+                <h2 className="font-display text-[13px] font-bold text-dim">History</h2>
+                <button
+                  className="bg-none border border-border rounded-xs text-muted cursor-pointer font-ui text-[11px] px-2 py-0.5 transition-[color,border-color] duration-150 hover:text-error hover:border-error"
+                  onClick={clearHistory}
+                >
                   Clear all
                 </button>
               </div>
-              <div className="history-grid">
+
+              <div className="flex gap-2.5 overflow-x-auto pb-1.5">
                 {history.map((item, i) => (
                   <div
                     key={`${item.seed}-${i}`}
-                    className="history-item"
+                    className="group relative shrink-0 w-20 bg-none border border-border rounded-xs cursor-pointer overflow-hidden transition-[border-color] duration-150 hover:border-accent"
                     onClick={() => viewFromHistory(item)}
                   >
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={`data:image/png;base64,${item.image}`}
                       alt={item.prompt}
+                      className="w-full block aspect-square object-cover"
                     />
-                    <span className="history-seed">{item.seed}</span>
+                    <span className="block text-[10px] text-dim font-mono text-center px-0 pb-1 pt-0.5">
+                      {item.seed}
+                    </span>
                     <button
-                      className="history-delete"
+                      className="absolute top-[3px] right-[3px] w-[18px] h-[18px] flex items-center justify-center bg-black/60 border-none rounded-[3px] text-text cursor-pointer text-[13px] leading-none p-0 opacity-0 transition-opacity duration-150 hover:bg-[rgba(255,60,60,0.8)] group-hover:opacity-100"
                       onClick={(e) => {
                         e.stopPropagation();
                         removeEntry(i);
@@ -227,8 +255,8 @@ export default function Home() {
           )}
 
           {result && loading && (
-            <div className="output-overlay">
-              <div className="big-spinner" />
+            <div className="absolute inset-0 bg-[rgba(13,13,13,0.7)] flex items-center justify-center rounded-xs">
+              <div className="w-9 h-9 border-2 border-border border-t-accent rounded-full animate-spin" />
             </div>
           )}
         </section>
